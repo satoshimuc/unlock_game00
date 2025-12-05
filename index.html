@@ -3,307 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UNLOCK - 1日1回、脳を解き放て</title>
-    <!-- Tailwind CSS for Modern UI -->
+    <title>UNLOCK</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (丸みのあるポップなフォントに変更) -->
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Google Fonts: M PLUS Rounded 1c -->
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- Review 1 & 2: デザイン刷新 --- */
+        /* --- デザイン設定 --- */
+        :root {
+            --color-red: #ef4444;
+            --color-blue: #3b82f6;
+            --color-yellow: #facc15;
+            --color-green: #22c55e;
+            --color-purple: #a855f7;
+            --bg-dots: radial-gradient(#bae6fd 20%, transparent 20%);
+        }
+
         body {
             font-family: 'M PLUS Rounded 1c', sans-serif;
-            background-color: #fffbeb; /* 暖かいクリーム色背景 */
+            background-color: #ffffff;
+            color: #334155;
             touch-action: manipulation;
             user-select: none;
-            color: #475569; /* Slate-600 */
+            overflow: hidden; /* 背景アニメーション用 */
         }
 
-        /* Custom Animations - よりポップで弾力のある動きに改善 */
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            60% { transform: scale(1.05); opacity: 1; }
+        /* 背景のドット柄（LP参考） */
+        .bg-pattern-dots {
+            background-color: #ffffff;
+            background-image: var(--bg-dots);
+            background-size: 20px 20px;
+            opacity: 0.4;
+        }
+
+        /* 波線デコレーション（LP参考） */
+        .wave-decoration {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: repeating-linear-gradient(
+                -45deg,
+                #fef08a,
+                #fef08a 10px,
+                #fde047 10px,
+                #fde047 20px
+            );
+            mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 120' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z' opacity='.25'/%3E%3Cpath d='M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z' opacity='.5'/%3E%3Cpath d='M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z'/%3E%3C/svg%3E");
+            mask-size: cover;
+            mask-repeat: no-repeat;
+            opacity: 0.8;
+            z-index: -1;
+        }
+
+        /* アニメーション */
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-gentle { animation: bounce-gentle 3s ease-in-out infinite; }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
             100% { transform: scale(1); opacity: 1; }
         }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px) rotate(-2deg); }
-            40% { transform: translateX(8px) rotate(2deg); }
-            60% { transform: translateX(-4px) rotate(-1deg); }
-            80% { transform: translateX(4px) rotate(1deg); }
+        .animate-pop { animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* UIコンポーネント: お手玉風ボタン */
+        .btn-beanbag {
+            border-radius: 9999px; /* 丸っこく */
+            border-bottom-width: 6px;
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-beanbag:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+        /* お手玉の縫い目のような点線ボーダー効果（擬似要素） */
+        .btn-beanbag::after {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border: 2px dashed rgba(255,255,255,0.4);
+            border-radius: 9999px;
+            pointer-events: none;
         }
 
-        /* Review 2改善: 正解時の楽しいエフェクト */
-        @keyframes success-pop {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.7); } /* Amber */
-            50% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(251, 191, 36, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(2deg); }
-            100% { transform: translateY(0px) rotate(0deg); }
-        }
-        
-        /* 背景のゆっくりした動き */
-        @keyframes blob-spin {
-            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
-            33% { transform: translate(30px, -50px) scale(1.1) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
-            100% { transform: translate(0px, 0px) scale(1) rotate(360deg); }
-        }
-
-        .animate-pop { animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        .animate-shake { animation: shake 0.4s ease-in-out; }
-        .animate-success { animation: success-pop 0.6s ease-out; }
-        .animate-float { animation: float 4s ease-in-out infinite; }
-        .animate-blob-spin { animation: blob-spin 20s infinite linear; }
-
-        .game-card {
+        /* カードデザイン */
+        .card-pop {
             background: white;
-            border-radius: 30px; /* Review 3: より丸く */
-            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.15), 0 4px 10px -5px rgba(0, 0, 0, 0.05);
-            border: 3px solid #fef3c7; /* Amber-100のボーダー追加 */
+            border-radius: 30px;
+            box-shadow: 0 10px 0 #e2e8f0; /* 厚みのある影 */
+            border: 2px solid #f1f5f9;
         }
 
-        ::-webkit-scrollbar { display: none; }
-
-        .btn-press { transition: transform 0.1s; }
-        .btn-press:active { transform: scale(0.92) !important; }
-
-        /* Review 2: ボタンのホバー効果を楽しく */
-        .btn-bounce:hover { transform: translateY(-3px); }
+        /* カラーユーティリティ */
+        .text-outline {
+            text-shadow: 
+                2px 2px 0 #fff,
+                -2px -2px 0 #fff,  
+                2px -2px 0 #fff,
+                -2px 2px 0 #fff,
+                2px 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
-<body class="h-screen w-full flex flex-col items-center justify-center overflow-hidden relative leading-relaxed">
+<body class="h-screen w-full flex flex-col items-center justify-center relative">
 
-    <!-- Background Elements (Review 1: ポップな配色に変更し、動きを追加) -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-        <div class="absolute top-[-20%] left-[-20%] w-80 h-80 bg-rose-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob-spin"></div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-96 h-96 bg-amber-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob-spin animation-delay-2000" style="animation-delay: -5s;"></div>
-        <div class="absolute top-[40%] left-[30%] w-64 h-64 bg-sky-300 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob-spin animation-delay-4000" style="animation-delay: -10s;"></div>
-    </div>
+    <!-- 背景装飾 -->
+    <div class="absolute inset-0 bg-pattern-dots -z-20"></div>
+    
+    <!-- 浮遊するカラフルな丸（お手玉イメージ） -->
+    <div class="absolute top-10 left-[-20px] w-24 h-24 bg-red-400 rounded-full opacity-20 animate-bounce-gentle" style="animation-delay: 0s;"></div>
+    <div class="absolute bottom-20 right-[-10px] w-32 h-32 bg-yellow-400 rounded-full opacity-20 animate-bounce-gentle" style="animation-delay: 1s;"></div>
+    <div class="absolute top-1/3 right-10 w-16 h-16 bg-blue-400 rounded-full opacity-20 animate-bounce-gentle" style="animation-delay: 2s;"></div>
+    
+    <!-- 波線 -->
+    <div class="wave-decoration"></div>
 
     <!-- MAIN APP CONTAINER -->
-    <div id="app" class="w-full max-w-md h-full flex flex-col relative px-5 py-8">
+    <div id="app" class="w-full max-w-md h-full flex flex-col relative px-5 py-6 z-10">
         
-        <!-- Header (共通ヘッダー) -->
-        <header id="app-header" class="hidden justify-between items-center mb-8 animate-pop">
-            <div class="flex items-center gap-2 bg-white/70 px-4 py-2 rounded-full shadow-sm backdrop-blur-sm">
-                <!-- Review 3: アイコンをよりポップに -->
-                <i class="fa-solid fa-rocket text-rose-500 text-2xl rotate-12"></i>
-                <h1 class="text-2xl font-black tracking-tight text-slate-800">UNLOCK</h1>
+        <!-- Header -->
+        <header id="app-header" class="hidden justify-between items-center mb-6 animate-pop">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-black tracking-tighter text-slate-800">UNLOCK</span>
             </div>
-            <div class="text-xs font-bold bg-white/80 px-4 py-2 rounded-full shadow-sm text-slate-500 backdrop-blur-sm border border-white">
+            <div class="text-xs font-bold bg-white px-3 py-1.5 rounded-full border-2 border-slate-100 text-slate-500 shadow-sm">
                 <span id="date-display">2023.01.01</span>
             </div>
         </header>
 
-        <!-- VIEWS -->
-
-        <!-- 0. LANDING PAGE VIEW (LP) -->
-        <div id="view-lp" class="hidden flex-1 flex-col justify-center items-center animate-pop pb-8 relative z-10">
-            <div class="text-center mt-8 mb-10 relative">
-                <!-- Review 2: アイコン背景をグラデーションに -->
-                <div class="inline-block p-8 bg-gradient-to-br from-rose-400 to-amber-400 rounded-[40px] shadow-2xl shadow-rose-200 mb-8 animate-float rotate-3">
-                    <i class="fa-solid fa-unlock-keyhole text-white text-7xl"></i>
+        <!-- 0. LP VIEW -->
+        <div id="view-lp" class="hidden flex-1 flex-col justify-center items-center animate-pop relative pb-10">
+            <!-- LP Hero -->
+            <div class="text-center mb-8 relative">
+                <div class="mb-6 relative inline-block">
+                    <!-- お手玉風アイコン集合体 -->
+                    <div class="flex justify-center items-center relative h-32 w-32 mx-auto animate-bounce-gentle">
+                        <div class="absolute top-0 left-4 w-16 h-16 bg-red-500 rounded-full border-4 border-white shadow-lg z-10"></div>
+                        <div class="absolute top-4 right-2 w-14 h-14 bg-blue-500 rounded-full border-4 border-white shadow-lg z-0"></div>
+                        <div class="absolute bottom-2 left-8 w-18 h-18 bg-yellow-400 rounded-full border-4 border-white shadow-lg z-20 flex items-center justify-center">
+                            <i class="fa-solid fa-face-smile text-yellow-700 text-3xl opacity-50"></i>
+                        </div>
+                    </div>
                 </div>
-                <h1 class="text-[2.5rem] font-black text-slate-800 mb-4 leading-none tracking-tight">
-                    脳を、<span class="text-rose-500">解き放て。</span>
+                
+                <h1 class="text-3xl font-black text-slate-800 mb-4 leading-tight">
+                    脳とからだを、<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500">もう一度あそばせよう。</span>
                 </h1>
-                <p class="text-slate-600 text-base font-bold px-4">
-                    1日30秒の遊び心が、<br>あなたの可能性を目覚めさせる。
+                <p class="text-slate-500 font-bold text-sm px-4">
+                    1日1回30秒。お手玉で遊ぶように<br>
+                    楽しく脳をアンロック。
                 </p>
             </div>
 
-            <!-- Features Grid (Review 1: 配色変更) -->
-            <div class="grid grid-cols-2 gap-4 w-full mb-10">
-                <div class="bg-white/90 p-5 rounded-3xl shadow-md border-2 border-amber-200 flex flex-col items-center text-center btn-bounce">
-                    <i class="fa-solid fa-lightbulb text-amber-500 text-3xl mb-3"></i>
-                    <h3 class="font-black text-base text-slate-700">ひらめき力</h3>
-                    <p class="text-xs font-bold text-amber-500 mt-1">瞬時の判断</p>
+            <!-- Features -->
+            <div class="grid grid-cols-2 gap-4 w-full mb-8">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border-b-4 border-blue-100 flex flex-col items-center text-center">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 text-blue-500">
+                        <i class="fa-solid fa-shapes"></i>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-700">直感あそび</h3>
                 </div>
-                <div class="bg-white/90 p-5 rounded-3xl shadow-md border-2 border-sky-200 flex flex-col items-center text-center btn-bounce">
-                    <i class="fa-solid fa-shuffle text-sky-500 text-3xl mb-3"></i>
-                    <h3 class="font-black text-base text-slate-700">並列処理</h3>
-                    <p class="text-xs font-bold text-sky-500 mt-1">マルチタスク</p>
+                <div class="bg-white p-4 rounded-3xl shadow-sm border-b-4 border-green-100 flex flex-col items-center text-center">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2 text-green-500">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="font-bold text-sm text-slate-700">瞬発力</h3>
                 </div>
             </div>
 
-            <div class="bg-rose-50 p-4 rounded-2xl w-full mb-8 border-2 border-rose-200 shadow-sm">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-heart text-rose-500 text-xl"></i>
-                    <div class="text-sm font-bold text-rose-700 leading-snug text-left flex-1">
-                        継続は力なり！<br>
-                        <span class="text-xs opacity-80">プレイは1日1回まで。明日も遊んでね。</span>
+            <button onclick="app.enterHome()" class="w-full bg-gradient-to-r from-red-400 to-red-500 border-red-600 text-white font-black text-xl py-5 shadow-lg shadow-red-200 btn-beanbag group">
+                <i class="fa-solid fa-play mr-2 group-hover:scale-110 transition-transform"></i> 
+                あそびを始める
+            </button>
+        </div>
+
+        <!-- 1. LOADING -->
+        <div id="view-loading" class="flex-1 flex flex-col justify-center items-center">
+            <div class="flex gap-2 mb-4">
+                <div class="w-4 h-4 bg-red-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-4 h-4 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-4 h-4 bg-blue-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+            <p class="text-sm font-bold text-slate-400">じゅんび中...</p>
+        </div>
+
+        <!-- 2. HOME VIEW -->
+        <div id="view-home" class="hidden flex-1 flex-col justify-center items-center animate-pop">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-slate-800 mb-2">今日のあそび</h2>
+                <p class="text-slate-500 text-sm font-bold">
+                    30秒間、失敗しても気にせず<br>どんどんチャレンジ！
+                </p>
+            </div>
+
+            <div class="card-pop w-full p-6 mb-8 relative overflow-hidden bg-white">
+                <!-- 装飾 -->
+                <div class="absolute -top-6 -right-6 w-20 h-20 bg-yellow-100 rounded-full"></div>
+                
+                <div class="relative z-10">
+                    <span class="inline-block bg-blue-100 text-blue-600 text-xs font-black px-3 py-1 rounded-full mb-3">TODAY'S MISSION</span>
+                    <h3 id="daily-title" class="text-xl font-black mb-2 text-slate-800">Title Loading...</h3>
+                    <p id="daily-desc" class="text-sm font-bold text-slate-500 mb-4 leading-relaxed">...</p>
+                    
+                    <div class="flex gap-2">
+                        <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-500">
+                            <i class="fa-regular fa-clock mr-1"></i> 30秒
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Review 1: メインボタンをポップな配色に -->
-            <button onclick="app.enterHome()" class="w-full bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-black text-lg py-5 rounded-3xl shadow-xl shadow-rose-200 transition-all btn-press btn-bounce flex items-center justify-center gap-3 group relative overflow-hidden">
-                <span class="relative z-10">UNLOCK スタート！</span>
-                <i class="fa-solid fa-play text-2xl relative z-10 group-hover:scale-125 transition-transform"></i>
-                <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            <button onclick="app.startGame()" class="w-full bg-gradient-to-r from-blue-400 to-blue-500 border-blue-600 text-white font-black text-xl py-5 shadow-lg shadow-blue-200 btn-beanbag">
+                スタート！
             </button>
-        </div>
-
-        <!-- 1. LOADING VIEW -->
-        <div id="view-loading" class="flex-1 flex flex-col justify-center items-center">
-            <!-- Review 3: ロード中も楽しげに -->
-            <div class="relative w-20 h-20 mb-6">
-                <div class="absolute inset-0 bg-rose-400 rounded-full opacity-25 animate-ping"></div>
-                <div class="absolute inset-2 bg-amber-400 rounded-full opacity-50 animate-ping animation-delay-500" style="animation-delay: -0.5s;"></div>
-                <div class="absolute inset-0 flex items-center justify-center animate-bounce">
-                     <i class="fa-solid fa-brain text-rose-500 text-4xl"></i>
-                </div>
-            </div>
-            <p class="text-base font-bold text-slate-500">脳の準備運動中...</p>
-        </div>
-
-        <!-- 2. HOME VIEW -->
-        <div id="view-home" class="hidden flex-1 flex-col justify-center items-center animate-pop z-10">
-            <div class="text-center mb-8">
-                <div class="inline-block p-5 bg-sky-100 border-4 border-sky-200 rounded-full mb-4 animate-float">
-                    <i class="fa-solid fa-star text-sky-500 text-5xl"></i>
-                </div>
-                <h2 class="text-3xl font-black mb-3 text-slate-800">今日のミッション</h2>
-                <p class="text-slate-600 font-bold text-base px-6">
-                    準備はいい？<br>30秒間、集中してハイスコアを目指そう！
-                </p>
-            </div>
-
-            <!-- Review 3: カードのデザインをよりポップに -->
-            <div class="game-card w-full p-6 mb-8 border-4 border-sky-300 relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 bg-sky-400 w-20 h-20 rounded-full opacity-20"></div>
-                <h3 id="daily-title" class="text-2xl font-black mb-2 text-sky-700 relative z-10">Task Loading...</h3>
-                <p id="daily-desc" class="text-base font-bold text-slate-600 mb-6 relative z-10 leading-relaxed">...</p>
-                <div class="flex items-center justify-center text-sm font-bold text-white gap-4 relative z-10">
-                    <span class="bg-sky-500 px-4 py-2 rounded-full shadow-md"><i class="fa-regular fa-clock mr-2"></i>制限時間 30秒</span>
-                </div>
-            </div>
-
-            <button onclick="app.startGame()" class="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black text-xl py-5 rounded-3xl shadow-xl shadow-sky-200 transition-all btn-press btn-bounce flex items-center justify-center gap-3">
-                <i class="fa-solid fa-rocket"></i> チャレンジ開始！
-            </button>
-            <p class="text-sm font-bold text-center text-slate-400 mt-6">※音は出ません</p>
         </div>
 
         <!-- 3. GAME VIEW -->
-        <div id="view-game" class="hidden flex-1 flex-col relative z-10">
-            <!-- Progress / Timer -->
-            <div class="w-full bg-slate-200 rounded-full h-5 mb-6 overflow-hidden border-4 border-white shadow-inner p-1">
-                <div id="timer-bar" class="bg-gradient-to-r from-rose-400 to-amber-400 h-full rounded-full transition-all duration-1000 ease-linear shadow-sm" style="width: 100%"></div>
+        <div id="view-game" class="hidden flex-1 flex-col relative">
+            <!-- Timer Bar -->
+            <div class="w-full bg-slate-100 rounded-full h-4 mb-6 border-2 border-slate-200 p-1">
+                <div id="timer-bar" class="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-1000 ease-linear shadow-sm" style="width: 100%"></div>
             </div>
 
-            <div class="flex justify-between items-end mb-4 bg-white/60 p-4 rounded-3xl backdrop-blur-sm border-2 border-white shadow-sm">
-                <div class="text-base font-black text-slate-500">SCORE</div>
-                <div id="score-display" class="text-5xl font-black text-rose-500 leading-none">0</div>
+            <div class="flex justify-between items-end mb-4 px-2">
+                <div class="text-sm font-black text-slate-400 bg-white px-3 py-1 rounded-full border-2 border-slate-100">SCORE</div>
+                <div id="score-display" class="text-5xl font-black text-slate-800 text-outline drop-shadow-sm">0</div>
             </div>
 
-            <!-- Game Stage Area -->
-            <div id="game-stage" class="flex-1 game-card flex flex-col justify-center items-center p-4 mb-6 relative overflow-hidden border-4 border-amber-300">
-                <!-- Instruction Overlay (Review 2: 透過度を上げて没入感アップ) -->
-                <div id="instruction-overlay" class="absolute inset-0 bg-amber-100/90 z-20 flex flex-col justify-center items-center text-center p-8 backdrop-blur-sm">
-                    <i class="fa-solid fa-scroll text-amber-500 text-5xl mb-4 animate-bounce"></i>
-                    <h3 class="text-3xl font-black mb-4 text-amber-700">ルール</h3>
-                    <p id="game-rule-text" class="font-black text-slate-800 mb-8 text-2xl leading-relaxed">...</p>
-                    <div class="text-4xl font-black text-rose-500 animate-pulse">Ready...?</div>
+            <!-- Stage -->
+            <div id="game-stage" class="flex-1 card-pop flex flex-col justify-center items-center p-4 mb-6 relative">
+                <!-- Overlay -->
+                <div id="instruction-overlay" class="absolute inset-0 bg-white/95 z-20 flex flex-col justify-center items-center text-center p-6 rounded-[28px]">
+                    <h3 class="text-2xl font-black mb-4 text-blue-500">あそびかた</h3>
+                    <p id="game-rule-text" class="font-bold text-slate-700 mb-6 text-lg">...</p>
+                    <div class="text-4xl font-black text-red-500 animate-pulse">Ready...</div>
                 </div>
 
-                <!-- Main Stimulus -->
-                <div id="stimulus-container" class="text-center z-10 w-full flex flex-col items-center justify-center h-full">
-                    <!-- Dynamic Content injected by JS -->
+                <div id="stimulus-container" class="text-center z-10 w-full h-full flex flex-col justify-center items-center">
+                    <!-- Content -->
                 </div>
             </div>
 
-            <!-- Controls Area -->
-            <div id="controls-area" class="grid grid-cols-2 gap-4 h-36">
-                <!-- Dynamic Buttons injected by JS -->
+            <!-- Controls -->
+            <div id="controls-area" class="grid grid-cols-2 gap-3 h-32">
+                <!-- Dynamic Buttons -->
             </div>
         </div>
 
         <!-- 4. RESULT VIEW -->
-        <div id="view-result" class="hidden flex-1 flex-col justify-center items-center animate-pop z-10">
-            <div class="text-center mb-8">
-                <!-- Review 3: アイコンをクラッカーに -->
-                <div class="text-7xl mb-4 animate-bounce">🎊</div>
-                <h2 class="text-4xl font-black text-slate-800 mb-2">FINISH!</h2>
-                <p class="text-lg font-bold text-slate-500">ナイスチャレンジ！脳が喜んでるよ！</p>
+        <div id="view-result" class="hidden flex-1 flex-col justify-center items-center animate-pop">
+            <div class="text-center mb-6">
+                <div class="text-6xl mb-2 animate-bounce">🎉</div>
+                <h2 class="text-3xl font-black text-slate-800">おしまい！</h2>
             </div>
 
-            <div class="game-card w-full p-8 text-center mb-8 border-4 border-rose-300 relative overflow-hidden">
-                 <div class="absolute top-[-20%] left-[-20%] w-40 h-40 bg-rose-200 rounded-full opacity-30 animate-blob-spin"></div>
-                 <div class="absolute bottom-[-20%] right-[-20%] w-40 h-40 bg-amber-200 rounded-full opacity-30 animate-blob-spin animation-delay-2000"></div>
-                
-                <div class="text-base font-black text-rose-400 uppercase tracking-widest mb-2 relative z-10">今日のスコア</div>
-                <div id="final-score" class="text-[5rem] font-black text-rose-600 mb-6 leading-none relative z-10" style="text-shadow: 3px 3px 0px #fecdd3;">0</div>
-                <div class="w-full border-t-4 border-dashed border-rose-100 my-6 relative z-10"></div>
-                <p id="feedback-text" class="text-xl font-black text-slate-700 leading-relaxed relative z-10">...</p>
+            <div class="card-pop w-full p-8 text-center mb-6 border-b-8 border-yellow-200 bg-white">
+                <div class="text-xs font-black text-slate-400 mb-2">今回のスコア</div>
+                <div id="final-score" class="text-6xl font-black text-red-500 mb-4 text-outline">0</div>
+                <div class="w-16 h-1 bg-slate-100 mx-auto my-4 rounded-full"></div>
+                <p id="feedback-text" class="font-bold text-slate-700 text-lg">ナイスチャレンジ！</p>
             </div>
 
-            <button onclick="liff.closeWindow()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-blacktext-lg py-5 rounded-3xl shadow-xl transition-all btn-press btn-bounce mb-4">
-                閉じる
+            <button onclick="liff.closeWindow()" class="w-full bg-slate-700 border-slate-900 text-white font-black text-lg py-4 btn-beanbag mb-4">
+                とじる
             </button>
-            <p class="text-sm font-bold text-slate-400 text-center">明日もまた遊ぼうね！</p>
+            <p class="text-xs font-bold text-slate-400">明日もあそびにきてね！</p>
         </div>
 
-        <!-- 5. LIMIT REACHED VIEW -->
-        <div id="view-limit" class="hidden flex-1 flex-col justify-center items-center animate-pop z-10">
-            <div class="w-32 h-32 bg-teal-100 border-4 border-teal-200 rounded-full flex items-center justify-center mb-8 animate-float">
-                <i class="fa-solid fa-check-double text-6xl text-teal-500"></i>
+        <!-- 5. LIMIT VIEW -->
+        <div id="view-limit" class="hidden flex-1 flex-col justify-center items-center animate-pop">
+            <div class="w-28 h-28 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce-gentle border-4 border-white shadow-lg text-green-500">
+                <i class="fa-solid fa-check text-5xl"></i>
             </div>
-            <h2 class="text-3xl font-black text-slate-800 mb-4">今日の分はクリア！</h2>
-            <p class="text-lg font-bold text-slate-600 text-center mb-10 px-4 leading-relaxed">
-                脳を休めるのもトレーニングのうち。<br>
-                また明日、新しい遊びが待ってるよ！
+            <h2 class="text-2xl font-black text-slate-800 mb-3">今日の分はクリア！</h2>
+            <p class="text-slate-500 font-bold text-center mb-8 px-4 leading-relaxed">
+                遊び足りないくらいが<br>
+                脳にはちょうどいいんです。<br>
+                ゆっくり休んでね。
             </p>
-            <div class="text-base font-bold bg-white/90 p-6 rounded-2xl shadow-sm text-teal-600 border-2 border-teal-100 flex items-center">
-                <i class="fa-solid fa-calendar-day mr-3 text-2xl"></i> 次回は: <span id="next-date" class="ml-2 text-xl">明日</span> から
+            <div class="bg-white px-6 py-3 rounded-2xl shadow-sm border-2 border-slate-100 font-bold text-slate-500">
+                また<span id="next-date" class="text-blue-500 mx-1">明日</span>あそぼう！
             </div>
         </div>
 
     </div>
 
-    <!-- LIFF SDK Loading -->
+    <!-- Script (機能はそのまま維持) -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-    <!-- Main Application Script -->
     <script>
-        /**
-         * App State & Configuration
-         */
         const AppConfig = {
-            gameDuration: 30, // seconds
-            storageKey: 'unlock_daily_last_played', // Key名変更
+            gameDuration: 30,
+            storageKey: 'unlock_daily_last_played_v2', // v2 to reset for new design check
         };
 
-        // Review 1: ゲームテキストのトーンも少しポップに
         const GameData = [
             {
                 id: 'stroop',
-                title: '色と言葉のスイッチ！',
-                desc: '文字の「色」と、書いてある「言葉」。どっちが正解か、瞬時に見極めろ！',
-                rule: '指示をよく見て、正解ボタンをタップ！',
-                type: 'choice'
+                title: '色と言葉のスイッチ',
+                desc: '文字の「色」と、書いてある「言葉」。どっちが正解か見極めよう！',
+                rule: '指示をよく見て、正解のボタンを押してね！',
             },
             {
                 id: 'direction',
-                title: 'あべこべナビゲーション',
-                desc: '矢印の向きと「同じ」か「逆」か。指示された方向を素早く入力しよう！',
-                rule: '「逆」なら反対、「同じ」ならそのまま！',
-                type: 'choice'
+                title: 'あべこべナビ',
+                desc: '矢印の向きと「同じ」か「逆」か。頭を切り替えて入力しよう！',
+                rule: '「逆」なら反対、「同じ」ならそのままの方向だよ！',
             },
             {
                 id: 'math_reflex',
                 title: 'ぐうすう？きすう？',
-                desc: '表示された数字は「偶数（2で割れる）」？それとも「奇数」？',
-                rule: '偶数か奇数か、直感で仕分けろ！',
-                type: 'choice'
+                desc: '数字を見て直感で仕分け！偶数（2で割れる）か奇数か？',
+                rule: '偶数か奇数か、素早く選ぼう！',
             }
         ];
 
@@ -314,30 +335,23 @@
                 timeLeft: AppConfig.gameDuration,
                 isPlaying: false,
                 todayGameIndex: 0,
-                timerInterval: null,
-                currentQuestion: null
+                timerInterval: null
             },
 
-            // --- Initialization ---
             init: async function() {
                 this.updateDateDisplay();
-                
                 const today = new Date();
                 const dateHash = today.getFullYear() + today.getMonth() + today.getDate();
                 this.state.todayGameIndex = dateHash % GameData.length;
-
+                
                 const lastPlayed = localStorage.getItem(AppConfig.storageKey);
                 const todayStr = today.toDateString();
 
                 if (lastPlayed === todayStr) {
                     this.switchView('limit');
                 } else {
-                    this.setupHome();
-                    // 初回ロード時は少し待ってからLPを表示（ローディングを見せるため）
-                    setTimeout(() => {
-                         this.switchView('lp');
-                    }, 800);
-                   
+                    // LPを表示
+                    setTimeout(() => this.switchView('lp'), 800);
                 }
             },
 
@@ -358,7 +372,6 @@
                 document.getElementById('game-rule-text').innerText = game.rule;
             },
 
-            // --- View Management ---
             switchView: function(viewName) {
                 const header = document.getElementById('app-header');
                 if (['home', 'game', 'result', 'limit'].includes(viewName)) {
@@ -368,6 +381,8 @@
                     header.classList.add('hidden');
                     header.classList.remove('flex');
                 }
+
+                if (viewName === 'home') this.setupHome();
 
                 ['loading', 'lp', 'home', 'game', 'result', 'limit'].forEach(v => {
                     const el = document.getElementById(`view-${v}`);
@@ -380,20 +395,17 @@
                     }
                 });
                 this.state.currentView = viewName;
-                // ビュー切り替え時にスクロールをトップに戻す
-                 document.getElementById('app').scrollTo(0,0);
             },
 
             enterHome: function() {
                 this.switchView('home');
             },
 
-            // --- Game Logic ---
             startGame: function() {
                 this.switchView('game');
                 this.state.score = 0;
                 this.state.timeLeft = AppConfig.gameDuration;
-                this.updateScoreUI();
+                document.getElementById('score-display').innerText = 0;
                 
                 const overlay = document.getElementById('instruction-overlay');
                 overlay.style.display = 'flex';
@@ -403,15 +415,14 @@
                     this.state.isPlaying = true;
                     this.startTimer();
                     this.nextRound();
-                }, 2500); // ルール確認時間を少し延長
+                }, 2500);
             },
 
             startTimer: function() {
                 const timerBar = document.getElementById('timer-bar');
                 timerBar.style.width = '100%';
-                // Review 1: タイマーの色もグラデーションで変化させる
-                timerBar.classList.remove('from-rose-500', 'to-orange-500');
-                timerBar.classList.add('from-rose-400', 'to-amber-400');
+                timerBar.classList.remove('from-red-400', 'to-red-500');
+                timerBar.classList.add('from-green-400', 'to-green-500');
                 
                 this.state.timerInterval = setInterval(() => {
                     this.state.timeLeft--;
@@ -419,8 +430,8 @@
                     timerBar.style.width = `${pct}%`;
                     
                     if (this.state.timeLeft <= 10) {
-                        timerBar.classList.remove('from-rose-400', 'to-amber-400');
-                        timerBar.classList.add('from-rose-500', 'to-orange-500');
+                        timerBar.classList.remove('from-green-400', 'to-green-500');
+                        timerBar.classList.add('from-red-400', 'to-red-500');
                     }
 
                     if (this.state.timeLeft <= 0) {
@@ -439,29 +450,25 @@
                 stage.innerHTML = '';
                 controls.innerHTML = '';
 
-                // Review 1: ゲーム内要素のデザインもポップに統一
-
-                // Game 1: Stroop
+                // --- Game 1: Stroop ---
                 if (gameType === 'stroop') {
                     const colors = [
-                        // Tailwindの色クラスを新しいパレットに合わせて調整
-                        { name: 'あか', code: 'text-rose-500', bg: 'bg-rose-100', border: 'border-rose-300', val: 'red' },
-                        { name: 'あお', code: 'text-sky-500', bg: 'bg-sky-100', border: 'border-sky-300', val: 'blue' },
-                        { name: 'みどり', code: 'text-teal-500', bg: 'bg-teal-100', border: 'border-teal-300', val: 'green' },
-                        { name: 'きいろ', code: 'text-amber-500', bg: 'bg-amber-100', border: 'border-amber-300', val: 'yellow' }
+                        { name: 'あか', code: 'text-red-500', bg: 'bg-red-400', border: 'border-red-600', val: 'red' },
+                        { name: 'あお', code: 'text-blue-500', bg: 'bg-blue-400', border: 'border-blue-600', val: 'blue' },
+                        { name: 'みどり', code: 'text-green-500', bg: 'bg-green-400', border: 'border-green-600', val: 'green' },
+                        { name: 'きいろ', code: 'text-yellow-500', bg: 'bg-yellow-400', border: 'border-yellow-600', val: 'yellow' }
                     ];
                     
                     const mode = Math.random() > 0.5 ? 'color' : 'text';
                     const targetText = colors[Math.floor(Math.random() * colors.length)];
                     const targetColor = colors[Math.floor(Math.random() * colors.length)];
-                    
                     const correctAnswer = mode === 'color' ? targetColor.val : targetText.val;
                     
                     stage.innerHTML = `
-                        <div class="text-xl font-black text-slate-500 mb-6 bg-white/80 px-6 py-3 rounded-full shadow-sm border-2 border-slate-200">
-                            ${mode === 'color' ? '<span class="text-rose-500">色</span> を答えて！' : '<span class="text-sky-500">読み</span> を答えて！'}
+                        <div class="inline-block bg-slate-100 px-4 py-1 rounded-full text-sm font-black text-slate-500 mb-4">
+                            ${mode === 'color' ? '「色」を答えて！' : '「読み」を答えて！'}
                         </div>
-                        <div class="text-[5rem] font-black ${targetColor.code} transition-all transform scale-100 leading-none" style="text-shadow: 2px 2px 0px rgba(0,0,0,0.1);">
+                        <div class="text-[4rem] font-black ${targetColor.code} leading-none drop-shadow-sm">
                             ${targetText.name}
                         </div>
                     `;
@@ -469,19 +476,17 @@
                     const options = [...colors].sort(() => Math.random() - 0.5);
                     options.forEach(opt => {
                         const btn = document.createElement('button');
-                        // Review 2: ボタンのデザインを強化
-                        btn.className = `${opt.bg} ${opt.code} border-b-4 ${opt.border} font-black rounded-2xl text-2xl shadow-md active:scale-95 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center btn-bounce h-full`;
+                        btn.className = `${opt.bg} ${opt.border} text-white btn-beanbag text-xl font-black h-full flex items-center justify-center shadow-md`;
                         btn.innerText = opt.name;
                         btn.onclick = () => this.handleAnswer(opt.val === correctAnswer);
                         controls.appendChild(btn);
                     });
                 }
 
-                // Game 2: Direction
+                // --- Game 2: Direction ---
                 else if (gameType === 'direction') {
                     const dirs = ['up', 'down', 'left', 'right'];
                     const icons = { up: 'fa-arrow-up', down: 'fa-arrow-down', left: 'fa-arrow-left', right: 'fa-arrow-right' };
-                    
                     const actualDir = dirs[Math.floor(Math.random() * dirs.length)];
                     const isReverse = Math.random() > 0.5;
                     
@@ -494,43 +499,43 @@
                     }
 
                     stage.innerHTML = `
-                        <div class="text-xl font-black ${isReverse ? 'text-white bg-rose-500' : 'text-white bg-sky-500'} px-8 py-3 rounded-full shadow-md mb-8 animate-pulse border-2 border-white">
-                            ${isReverse ? '<i class="fa-solid fa-shuffle mr-2"></i> 逆を向け！' : '<i class="fa-solid fa-check mr-2"></i> そのまま！'}
+                        <div class="inline-block ${isReverse ? 'bg-red-100 text-red-500' : 'bg-blue-100 text-blue-500'} px-4 py-1 rounded-full text-sm font-black mb-6">
+                            ${isReverse ? '反対！' : 'そのまま！'}
                         </div>
-                        <div class="text-[7rem] text-slate-700 filter drop-shadow-lg">
+                        <div class="text-[5rem] text-slate-700 drop-shadow-sm">
                             <i class="fa-solid ${icons[actualDir]}"></i>
                         </div>
                     `;
 
                     dirs.forEach(d => {
                         const btn = document.createElement('button');
-                        btn.className = `bg-white border-4 border-slate-200 text-slate-600 font-black rounded-3xl text-4xl shadow-lg active:scale-95 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center btn-bounce text-slate-400 hover:text-slate-600 hover:border-slate-300 h-full`;
+                        btn.className = `bg-white border-slate-200 text-slate-400 border-b-4 rounded-3xl text-3xl font-black h-full flex items-center justify-center shadow-sm active:translate-y-1 active:border-b-2 active:text-blue-500 transition-all`;
                         btn.innerHTML = `<i class="fa-solid ${icons[d]}"></i>`;
                         btn.onclick = () => this.handleAnswer(d === correctDir);
                         controls.appendChild(btn);
                     });
                 }
 
-                // Game 3: Math Reflex
+                // --- Game 3: Math ---
                 else if (gameType === 'math_reflex') {
                     const num = Math.floor(Math.random() * 99) + 1;
                     const isEven = num % 2 === 0;
                     
                     stage.innerHTML = `
-                        <div class="text-xl font-black text-slate-500 mb-6 bg-white/80 px-6 py-3 rounded-full shadow-sm border-2 border-slate-200">数字はどっち？</div>
-                        <div class="text-[6rem] font-black text-indigo-600 font-mono bg-indigo-100 w-40 h-40 flex items-center justify-center rounded-[40px] border-4 border-indigo-300 shadow-xl rotate-3">
+                        <div class="text-sm font-black text-slate-400 mb-4">どっち？</div>
+                        <div class="w-32 h-32 flex items-center justify-center bg-white border-4 border-dashed border-slate-200 rounded-full text-[4rem] font-black text-slate-700">
                             ${num}
                         </div>
                     `;
 
                     const btnEven = document.createElement('button');
-                    btnEven.className = `bg-sky-100 text-sky-700 border-b-4 border-sky-300 font-black rounded-3xl text-2xl shadow-md active:scale-95 active:border-b-0 active:translate-y-1 transition-all py-4 btn-bounce flex flex-col items-center justify-center h-full leading-tight`;
-                    btnEven.innerHTML = '偶数<span class="text-sm opacity-70">(2, 4, 6...)</span>';
+                    btnEven.className = `bg-blue-400 border-blue-600 text-white btn-beanbag text-lg font-black h-full py-4 flex flex-col items-center justify-center shadow-md`;
+                    btnEven.innerHTML = '偶数<span class="text-xs opacity-80">(2,4,6...)</span>';
                     btnEven.onclick = () => this.handleAnswer(isEven);
 
                     const btnOdd = document.createElement('button');
-                    btnOdd.className = `bg-rose-100 text-rose-700 border-b-4 border-rose-300 font-black rounded-3xl text-2xl shadow-md active:scale-95 active:border-b-0 active:translate-y-1 transition-all py-4 btn-bounce flex flex-col items-center justify-center h-full leading-tight`;
-                    btnOdd.innerHTML = '奇数<span class="text-sm opacity-70">(1, 3, 5...)</span>';
+                    btnOdd.className = `bg-red-400 border-red-600 text-white btn-beanbag text-lg font-black h-full py-4 flex flex-col items-center justify-center shadow-md`;
+                    btnOdd.innerHTML = '奇数<span class="text-xs opacity-80">(1,3,5...)</span>';
                     btnOdd.onclick = () => this.handleAnswer(!isEven);
 
                     controls.appendChild(btnEven);
@@ -542,33 +547,26 @@
                 if (!this.state.isPlaying) return;
 
                 const stage = document.getElementById('game-stage');
-
                 if (isCorrect) {
                     this.state.score += 10;
-                    // Review 2: 新しい成功アニメーションを適用
-                    stage.classList.add('animate-success');
-                    setTimeout(() => stage.classList.remove('animate-success'), 600);
+                    // ポップな拡縮アニメーション
+                    stage.animate([
+                        { transform: 'scale(1)' },
+                        { transform: 'scale(1.05)' },
+                        { transform: 'scale(1)' }
+                    ], { duration: 200 });
                 } else {
-                    stage.classList.add('animate-shake');
-                    // 不正解時は少し赤くするフィードバックを追加
-                    stage.classList.add('bg-rose-100');
-                    setTimeout(() => {
-                        stage.classList.remove('animate-shake');
-                        stage.classList.remove('bg-rose-100');
-                    }, 400);
+                    // 揺れるアニメーション
+                    stage.animate([
+                        { transform: 'translateX(0)' },
+                        { transform: 'translateX(-5px)' },
+                        { transform: 'translateX(5px)' },
+                        { transform: 'translateX(0)' }
+                    ], { duration: 300 });
                 }
                 
-                this.updateScoreUI();
+                document.getElementById('score-display').innerText = this.state.score;
                 this.nextRound();
-            },
-
-            updateScoreUI: function() {
-                // スコア更新時に少し跳ねさせる
-                const scoreEl = document.getElementById('score-display');
-                scoreEl.innerText = this.state.score;
-                scoreEl.classList.remove('animate-pop');
-                void scoreEl.offsetWidth; // リフローさせてアニメーションをリセット
-                scoreEl.classList.add('animate-pop');
             },
 
             endGame: function() {
@@ -580,43 +578,26 @@
 
                 document.getElementById('final-score').innerText = this.state.score;
                 
-                let feedback = "";
-                if (this.state.score > 250) feedback = "神レベルの脳処理速度！<br>君は天才かもしれない！";
-                else if (this.state.score > 150) feedback = "すごい！脳が完全に<br>目覚めているね！";
-                else if (this.state.score > 50) feedback = "ナイスファイト！<br>この調子で続けよう。";
-                else feedback = "ドンマイ！<br>明日はもっとできるはず。";
+                let feedback = "ドンマイ！";
+                if (this.state.score > 200) feedback = "すごい！天才かも！？";
+                else if (this.state.score > 100) feedback = "いい感じ！脳が起きたね！";
+                else if (this.state.score > 50) feedback = "ナイスファイト！";
                 
-                document.getElementById('feedback-text').innerHTML = feedback;
-                
+                document.getElementById('feedback-text').innerText = feedback;
                 this.switchView('result');
             }
         };
 
-        // --- LIFF & Boot Logic ---
         window.onload = function() {
-            const liffId = "2008634402-WmX8vnr1"; 
-
+            const liffId = "2008634402-WmX8vnr1";
             if (typeof liff !== 'undefined') {
-                liff.init({ liffId: liffId })
-                    .then(() => {
-                        console.log("LIFF initialized");
-                        if (!liff.isLoggedIn() && liff.isInClient()) {
-                            liff.login();
-                        }
-                    })
-                    .catch((err) => {
-                        console.warn("LIFF Init failed:", err);
-                    })
-                    .finally(() => {
-                        // 起動時のアニメーションを少し見せるための遅延
-                        setTimeout(() => app.init(), 1000);
-                    });
+                liff.init({ liffId: liffId }).then(() => {
+                    if (!liff.isLoggedIn() && liff.isInClient()) liff.login();
+                }).catch(e => console.log(e)).finally(() => setTimeout(() => app.init(), 1000));
             } else {
-                console.error("LIFF SDK not found");
                 app.init();
             }
         };
-
     </script>
 </body>
 </html>
