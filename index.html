@@ -14,7 +14,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-XXXXXXXXXX');
     </script>
 
@@ -26,7 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- デザイン設定 (前回同様) --- */
+        /* --- デザイン設定 --- */
         :root {
             --bg-dots: radial-gradient(#bae6fd 20%, transparent 20%);
         }
@@ -92,34 +91,35 @@
             text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* カレンダー用スタイル */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+        /* 難易度選択ボタン用 */
+        .level-btn {
+            transition: all 0.2s;
+            border: 2px solid transparent;
         }
+        .level-btn.selected {
+            background-color: #f0f9ff;
+            border-color: #3b82f6;
+            transform: scale(1.02);
+            box-shadow: 0 4px 0 #bfdbfe;
+        }
+        .level-btn:not(.selected) {
+            opacity: 0.7;
+            background-color: #f8fafc;
+            border-color: #e2e8f0;
+        }
+
+        /* カレンダー */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
         .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #94a3b8;
-            position: relative;
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; font-size: 0.9rem; font-weight: 700; color: #94a3b8; position: relative;
         }
         .calendar-day.stamped {
-            background-color: #fef08a; /* yellow-200 */
-            color: #854d0e;
-            box-shadow: 0 2px 0 #fde047;
+            background-color: #fef08a; color: #854d0e; box-shadow: 0 2px 0 #fde047;
         }
         .stamp-mark {
-            position: absolute;
-            font-size: 1.2rem;
-            color: #ef4444;
-            filter: drop-shadow(0 2px 0 rgba(255,255,255,0.5));
-            animation: stamp-seal 0.3s forwards;
+            position: absolute; font-size: 1.2rem; color: #ef4444;
+            filter: drop-shadow(0 2px 0 rgba(255,255,255,0.5)); animation: stamp-seal 0.3s forwards;
         }
     </style>
 </head>
@@ -169,30 +169,14 @@
                 </h1>
                 <p class="text-slate-500 font-bold text-sm px-4">
                     1日1回30秒。<br>
-                    毎日スタンプを集めて楽しくアンロック。
+                    レベルを選んで楽しくアンロック！
                 </p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 w-full mb-8">
-                <div class="bg-white p-4 rounded-3xl shadow-sm border-b-4 border-blue-100 flex flex-col items-center text-center">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 text-blue-500">
-                        <i class="fa-solid fa-shapes"></i>
-                    </div>
-                    <h3 class="font-bold text-sm text-slate-700">直感あそび</h3>
-                </div>
-                <div class="bg-white p-4 rounded-3xl shadow-sm border-b-4 border-green-100 flex flex-col items-center text-center">
-                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2 text-green-500">
-                        <i class="fa-solid fa-bolt"></i>
-                    </div>
-                    <h3 class="font-bold text-sm text-slate-700">瞬発力</h3>
-                </div>
             </div>
 
             <button onclick="app.checkLoginAndStart()" class="w-full bg-gradient-to-r from-red-400 to-red-500 border-red-600 text-white font-black text-xl py-5 shadow-lg shadow-red-200 btn-beanbag group">
                 <i class="fa-solid fa-play mr-2 group-hover:scale-110 transition-transform"></i> 
                 あそびを始める
             </button>
-            <p id="user-status" class="mt-4 text-xs font-bold text-slate-400">Guest User</p>
         </div>
 
         <!-- 1. LOADING -->
@@ -205,28 +189,48 @@
             <p class="text-sm font-bold text-slate-400">ロード中...</p>
         </div>
 
-        <!-- 2. HOME VIEW -->
-        <div id="view-home" class="hidden flex-1 flex-col justify-center items-center animate-pop">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-black text-slate-800 mb-2">今日のあそび</h2>
-                <p class="text-slate-500 text-sm font-bold">
-                    30秒間、失敗しても気にせず<br>どんどんチャレンジ！
-                </p>
+        <!-- 2. HOME VIEW (Difficulty Select) -->
+        <div id="view-home" class="hidden flex-1 flex-col justify-center items-center animate-pop w-full">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-black text-slate-800 mb-1">今日のあそび</h2>
+                <p class="text-slate-400 text-xs font-bold">難易度を選んでね</p>
             </div>
 
-            <div class="card-pop w-full p-6 mb-8 relative overflow-hidden bg-white">
-                <div class="absolute -top-6 -right-6 w-20 h-20 bg-yellow-100 rounded-full"></div>
-                
-                <div class="relative z-10">
-                    <span class="inline-block bg-blue-100 text-blue-600 text-xs font-black px-3 py-1 rounded-full mb-3">TODAY'S MISSION</span>
-                    <h3 id="daily-title" class="text-xl font-black mb-2 text-slate-800">Title Loading...</h3>
-                    <p id="daily-desc" class="text-sm font-bold text-slate-500 mb-4 leading-relaxed">...</p>
-                    <div class="flex gap-2">
-                        <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-500">
-                            <i class="fa-regular fa-clock mr-1"></i> 30秒
-                        </div>
+            <!-- Task Card -->
+            <div class="card-pop w-full p-5 mb-6 relative bg-white border-blue-50">
+                <span class="inline-block bg-blue-100 text-blue-600 text-xs font-black px-3 py-1 rounded-full mb-2">MISSION</span>
+                <h3 id="daily-title" class="text-lg font-black mb-1 text-slate-800">Title</h3>
+                <p id="daily-desc" class="text-xs font-bold text-slate-500 leading-relaxed">...</p>
+            </div>
+
+            <!-- Difficulty Select -->
+            <div class="w-full grid grid-cols-3 gap-2 mb-6">
+                <!-- Easy -->
+                <button onclick="app.setDifficulty('easy')" id="btn-easy" class="level-btn rounded-2xl p-3 flex flex-col items-center justify-center h-28 cursor-pointer">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2 text-green-500">
+                        <i class="fa-solid fa-egg"></i>
                     </div>
-                </div>
+                    <span class="text-sm font-black text-slate-700">初級</span>
+                    <span class="text-[10px] font-bold text-slate-400">小学生</span>
+                </button>
+                
+                <!-- Normal -->
+                <button onclick="app.setDifficulty('normal')" id="btn-normal" class="level-btn selected rounded-2xl p-3 flex flex-col items-center justify-center h-28 cursor-pointer">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 text-blue-500">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <span class="text-sm font-black text-slate-700">中級</span>
+                    <span class="text-[10px] font-bold text-slate-400">中高生</span>
+                </button>
+
+                <!-- Pro -->
+                <button onclick="app.setDifficulty('pro')" id="btn-pro" class="level-btn rounded-2xl p-3 flex flex-col items-center justify-center h-28 cursor-pointer">
+                    <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mb-2 text-red-500">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <span class="text-sm font-black text-slate-700">プロ級</span>
+                    <span class="text-[10px] font-bold text-slate-400">極める</span>
+                </button>
             </div>
 
             <button onclick="app.startGame()" class="w-full bg-gradient-to-r from-blue-400 to-blue-500 border-blue-600 text-white font-black text-xl py-5 shadow-lg shadow-blue-200 btn-beanbag">
@@ -241,7 +245,10 @@
             </div>
 
             <div class="flex justify-between items-end mb-4 px-2">
-                <div class="text-sm font-black text-slate-400 bg-white px-3 py-1 rounded-full border-2 border-slate-100">SCORE</div>
+                <div class="flex flex-col">
+                     <span class="text-[10px] font-bold text-slate-400 mb-1" id="game-level-badge">LEVEL</span>
+                     <div class="text-sm font-black text-slate-400 bg-white px-3 py-1 rounded-full border-2 border-slate-100">SCORE</div>
+                </div>
                 <div id="score-display" class="text-5xl font-black text-slate-800 text-outline drop-shadow-sm">0</div>
             </div>
 
@@ -265,7 +272,6 @@
             </div>
 
             <div class="card-pop w-full p-6 text-center mb-6 border-b-8 border-yellow-200 bg-white relative overflow-visible">
-                <!-- スタンプアニメーション用 -->
                 <div id="result-stamp-area" class="absolute top-2 right-2 opacity-0">
                     <i class="fa-solid fa-certificate text-red-500 text-6xl drop-shadow-md"></i>
                     <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-black text-xs -rotate-12">済</span>
@@ -273,6 +279,7 @@
 
                 <div class="text-xs font-black text-slate-400 mb-2">今回のスコア</div>
                 <div id="final-score" class="text-6xl font-black text-red-500 mb-4 text-outline">0</div>
+                <p id="result-difficulty" class="text-xs font-bold text-blue-400 mb-2">MODE: NORMAL</p>
                 <div class="w-16 h-1 bg-slate-100 mx-auto my-4 rounded-full"></div>
                 <p id="feedback-text" class="font-bold text-slate-700 text-lg">ナイスチャレンジ！</p>
             </div>
@@ -304,119 +311,63 @@
             </div>
         </div>
 
-        <!-- 6. CALENDAR VIEW (NEW) -->
+        <!-- 6. CALENDAR VIEW -->
         <div id="view-calendar" class="hidden flex-1 flex-col items-center animate-pop w-full">
             <h2 class="text-2xl font-black text-slate-800 mb-6">あそびの記録</h2>
-            
             <div class="card-pop w-full p-6 bg-white mb-6">
                 <div class="flex justify-between items-center mb-4 border-b-2 border-slate-100 pb-2">
-                    <button class="text-slate-300 hover:text-blue-500"><i class="fa-solid fa-chevron-left"></i></button>
                     <span id="calendar-month-label" class="text-lg font-black text-slate-700">2023年 10月</span>
-                    <button class="text-slate-300 hover:text-blue-500"><i class="fa-solid fa-chevron-right"></i></button>
                 </div>
-                
-                <!-- 曜日ヘッダー -->
                 <div class="calendar-grid mb-2 text-xs font-bold text-slate-400">
-                    <div class="text-center text-red-400">日</div>
-                    <div class="text-center">月</div>
-                    <div class="text-center">火</div>
-                    <div class="text-center">水</div>
-                    <div class="text-center">木</div>
-                    <div class="text-center">金</div>
-                    <div class="text-center text-blue-400">土</div>
+                    <div class="text-center text-red-400">日</div><div class="text-center">月</div><div class="text-center">火</div><div class="text-center">水</div><div class="text-center">木</div><div class="text-center">金</div><div class="text-center text-blue-400">土</div>
                 </div>
-                
-                <!-- 日付グリッド -->
-                <div id="calendar-days" class="calendar-grid">
-                    <!-- JSで生成 -->
-                </div>
+                <div id="calendar-days" class="calendar-grid"></div>
             </div>
-
             <div class="bg-white/80 p-4 rounded-2xl w-full text-center mb-4">
                 <p class="text-xs font-bold text-slate-500 mb-1">継続日数</p>
                 <p class="text-3xl font-black text-blue-500" id="streak-count">0 <span class="text-sm">日</span></p>
             </div>
-
-            <button onclick="liff.closeWindow()" class="w-full bg-slate-700 border-slate-900 text-white font-black text-lg py-4 btn-beanbag mt-auto">
-                とじる
-            </button>
+            <button onclick="liff.closeWindow()" class="w-full bg-slate-700 border-slate-900 text-white font-black text-lg py-4 btn-beanbag mt-auto">とじる</button>
         </div>
-
     </div>
 
     <!-- LIFF SDK -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        /**
-         * App Configuration
-         */
-        const AppConfig = {
-            gameDuration: 30,
-            // ユーザーIDによって動的にキーを変えるため、ベースキーのみ定義
-            storageBaseKey: 'unlock_data_',
-        };
+        /** App Config */
+        const AppConfig = { gameDuration: 30, storageBaseKey: 'unlock_data_v3_' };
 
+        // Game Definitions
         const GameData = [
-            { id: 'stroop', title: '色と言葉', desc: '「色」か「言葉」か、指示を瞬時に見極めよう！', rule: '正解のボタンを押してね！' },
-            { id: 'direction', title: 'あべこべナビ', desc: '矢印の向きと「同じ」か「逆」か。頭を切り替えろ！', rule: '指示通りに入力してね！' },
+            { id: 'stroop', title: '色と言葉', desc: '「色」か「言葉」か、瞬時に見極めよう！', rule: '正解のボタンを押してね！' },
+            { id: 'direction', title: 'あべこべナビ', desc: '矢印の向きと「同じ」か「逆」か。', rule: '指示通りに入力してね！' },
             { id: 'math_reflex', title: 'ぐうすう？', desc: '数字を見て直感で仕分け！偶数か奇数か？', rule: '偶数か奇数か選んでね！' }
         ];
 
-        /**
-         * User Data Manager
-         * UserIDに基づいたデータ保存・読み出しを担当
-         */
+        /** User Data Manager */
         const UserData = {
-            userId: 'guest', // Default
-            
-            setUserId: function(id) {
-                this.userId = id || 'guest';
-                console.log(`User set to: ${this.userId}`);
-            },
-
-            // 履歴データ構造: { dates: ['2023-10-01', '2023-10-02'], lastScore: 100 }
-            getKey: function() {
-                return AppConfig.storageBaseKey + this.userId;
-            },
-
+            userId: 'guest',
+            setUserId: function(id) { this.userId = id || 'guest'; },
+            getKey: function() { return AppConfig.storageBaseKey + this.userId; },
             load: function() {
                 const raw = localStorage.getItem(this.getKey());
                 return raw ? JSON.parse(raw) : { dates: [], lastScore: 0 };
             },
-
-            save: function(data) {
-                localStorage.setItem(this.getKey(), JSON.stringify(data));
-            },
-
+            save: function(data) { localStorage.setItem(this.getKey(), JSON.stringify(data)); },
             hasPlayedToday: function() {
                 const data = this.load();
-                const today = new Date().toDateString(); // "Fri Oct 05 2023"
-                // 簡易チェック：日付文字列配列に今日が含まれているか
-                // toDateString()形式で保存する前提
-                return data.dates.includes(today);
+                return data.dates.includes(new Date().toDateString());
             },
-
             recordPlay: function(score) {
                 const data = this.load();
                 const today = new Date().toDateString();
-                
-                if (!data.dates.includes(today)) {
-                    data.dates.push(today);
-                }
+                if (!data.dates.includes(today)) data.dates.push(today);
                 data.lastScore = score;
                 this.save(data);
-            },
-
-            getStreak: function() {
-                const data = this.load();
-                // 簡易的な継続日数計算（厳密な連続でなく、総プレイ日数とする場合も多いが、ここでは総数）
-                return data.dates.length;
             }
         };
 
-        /**
-         * Application Logic
-         */
+        /** App Logic */
         const app = {
             state: {
                 currentView: 'loading',
@@ -424,39 +375,35 @@
                 timeLeft: AppConfig.gameDuration,
                 isPlaying: false,
                 todayGameIndex: 0,
-                timerInterval: null
+                timerInterval: null,
+                difficulty: 'normal' // easy, normal, pro
             },
 
-            // LIFF初期化後に呼ばれる
             init: async function() {
                 this.updateDateDisplay();
-                
-                // 本日のゲーム決定
                 const today = new Date();
-                const dateHash = today.getFullYear() + today.getMonth() + today.getDate();
-                this.state.todayGameIndex = dateHash % GameData.length;
-
-                // ユーザーID表示（デバッグ兼）
-                const userStatus = document.getElementById('user-status');
-                userStatus.innerText = UserData.userId === 'guest' ? 'Guest Mode' : 'Logged in';
-
-                // LP表示
+                this.state.todayGameIndex = (today.getFullYear() + today.getMonth() + today.getDate()) % GameData.length;
                 this.switchView('lp');
             },
 
             checkLoginAndStart: function() {
-                // ログイン状態を確認して遷移
-                if (UserData.hasPlayedToday()) {
-                    this.switchView('limit');
-                } else {
-                    this.switchView('home');
-                }
+                if (UserData.hasPlayedToday()) this.switchView('limit');
+                else this.switchView('home');
             },
 
             updateDateDisplay: function() {
                 const now = new Date();
-                const options = { month: '2-digit', day: '2-digit', weekday: 'short' };
-                document.getElementById('date-display').innerText = now.toLocaleDateString('ja-JP', options);
+                document.getElementById('date-display').innerText = now.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit', weekday: 'short' });
+            },
+
+            setDifficulty: function(level) {
+                this.state.difficulty = level;
+                // UI update
+                ['easy', 'normal', 'pro'].forEach(l => {
+                    const btn = document.getElementById(`btn-${l}`);
+                    if(l === level) btn.classList.add('selected');
+                    else btn.classList.remove('selected');
+                });
             },
 
             setupHome: function() {
@@ -464,46 +411,40 @@
                 document.getElementById('daily-title').innerText = game.title;
                 document.getElementById('daily-desc').innerText = game.desc;
                 document.getElementById('game-rule-text').innerText = game.rule;
+                this.setDifficulty('normal'); // Reset to normal on load
             },
 
             switchView: function(viewName) {
                 const header = document.getElementById('app-header');
-                
-                // ヘッダー表示制御
                 if (['home', 'game', 'result', 'limit', 'calendar'].includes(viewName)) {
-                    header.classList.remove('hidden');
-                    header.classList.add('flex');
+                    header.classList.remove('hidden'); header.classList.add('flex');
                 } else {
-                    header.classList.add('hidden');
-                    header.classList.remove('flex');
+                    header.classList.add('hidden'); header.classList.remove('flex');
                 }
-
+                
                 if (viewName === 'home') this.setupHome();
                 if (viewName === 'calendar') this.renderCalendar();
 
                 ['loading', 'lp', 'home', 'game', 'result', 'limit', 'calendar'].forEach(v => {
                     const el = document.getElementById(`view-${v}`);
-                    if (v === viewName) {
-                        el.classList.remove('hidden');
-                        if(v !== 'loading') el.classList.add('flex');
-                    } else {
-                        el.classList.add('hidden');
-                        el.classList.remove('flex');
-                    }
+                    if (v === viewName) { el.classList.remove('hidden'); if(v!=='loading') el.classList.add('flex'); }
+                    else { el.classList.add('hidden'); el.classList.remove('flex'); }
                 });
                 this.state.currentView = viewName;
             },
 
-            // --- Game Core ---
             startGame: function() {
                 this.switchView('game');
                 this.state.score = 0;
                 this.state.timeLeft = AppConfig.gameDuration;
                 document.getElementById('score-display').innerText = 0;
                 
+                // Show difficulty badge
+                const diffLabel = { easy: '初級', normal: '中級', pro: 'プロ級' };
+                document.getElementById('game-level-badge').innerText = `LEVEL: ${diffLabel[this.state.difficulty]}`;
+
                 const overlay = document.getElementById('instruction-overlay');
                 overlay.style.display = 'flex';
-                
                 setTimeout(() => {
                     overlay.style.display = 'none';
                     this.state.isPlaying = true;
@@ -514,60 +455,58 @@
 
             startTimer: function() {
                 const timerBar = document.getElementById('timer-bar');
-                timerBar.style.width = '100%';
                 timerBar.className = "h-full rounded-full transition-all duration-1000 ease-linear shadow-sm bg-gradient-to-r from-green-400 to-green-500";
-                
                 this.state.timerInterval = setInterval(() => {
                     this.state.timeLeft--;
                     const pct = (this.state.timeLeft / AppConfig.gameDuration) * 100;
                     timerBar.style.width = `${pct}%`;
-                    
-                    if (this.state.timeLeft <= 10) {
-                        timerBar.className = "h-full rounded-full transition-all duration-1000 ease-linear shadow-sm bg-gradient-to-r from-red-400 to-red-500";
-                    }
-
-                    if (this.state.timeLeft <= 0) {
-                        this.endGame();
-                    }
+                    if (this.state.timeLeft <= 10) timerBar.className = "h-full rounded-full transition-all duration-1000 ease-linear shadow-sm bg-gradient-to-r from-red-400 to-red-500";
+                    if (this.state.timeLeft <= 0) this.endGame();
                 }, 1000);
             },
 
             nextRound: function() {
                 if (!this.state.isPlaying) return;
-                
                 const gameType = GameData[this.state.todayGameIndex].id;
                 const stage = document.getElementById('stimulus-container');
                 const controls = document.getElementById('controls-area');
-                
-                stage.innerHTML = '';
-                controls.innerHTML = '';
+                stage.innerHTML = ''; controls.innerHTML = '';
 
-                // ゲームロジック (前回と同様)
+                // Switch logic based on Difficulty
                 if (gameType === 'stroop') this.renderStroop(stage, controls);
                 else if (gameType === 'direction') this.renderDirection(stage, controls);
                 else if (gameType === 'math_reflex') this.renderMath(stage, controls);
             },
 
-            // 個別ゲームレンダラー（簡略化のため集約）
+            // --- Game Logic with Difficulty ---
             renderStroop: function(stage, controls) {
-                const colors = [
+                // Easy: 2色, シンプル. Normal: 4色. Pro: 4色 + 混乱要素(フォントサイズ変化等)
+                const allColors = [
                     { name: 'あか', code: 'text-red-500', bg: 'bg-red-400', border: 'border-red-600', val: 'red' },
                     { name: 'あお', code: 'text-blue-500', bg: 'bg-blue-400', border: 'border-blue-600', val: 'blue' },
                     { name: 'みどり', code: 'text-green-500', bg: 'bg-green-400', border: 'border-green-600', val: 'green' },
                     { name: 'きいろ', code: 'text-yellow-500', bg: 'bg-yellow-400', border: 'border-yellow-600', val: 'yellow' }
                 ];
+                
+                let pool = allColors;
+                if (this.state.difficulty === 'easy') pool = allColors.slice(0, 2); // Only Red/Blue
+
                 const mode = Math.random() > 0.5 ? 'color' : 'text';
-                const targetText = colors[Math.floor(Math.random() * colors.length)];
-                const targetColor = colors[Math.floor(Math.random() * colors.length)];
+                const targetText = pool[Math.floor(Math.random() * pool.length)];
+                const targetColor = pool[Math.floor(Math.random() * pool.length)];
                 const correctAnswer = mode === 'color' ? targetColor.val : targetText.val;
+
+                // Pro: Random font size
+                const fontSize = this.state.difficulty === 'pro' ? (Math.random() > 0.5 ? 'text-[3rem]' : 'text-[5rem]') : 'text-[4rem]';
 
                 stage.innerHTML = `
                     <div class="inline-block bg-slate-100 px-4 py-1 rounded-full text-sm font-black text-slate-500 mb-4">
-                        ${mode === 'color' ? '「色」を答えて！' : '「読み」を答えて！'}
+                        ${mode === 'color' ? '「色」は？' : '「読み」は？'}
                     </div>
-                    <div class="text-[4rem] font-black ${targetColor.code} leading-none drop-shadow-sm">${targetText.name}</div>
+                    <div class="${fontSize} font-black ${targetColor.code} leading-none drop-shadow-sm transition-all">${targetText.name}</div>
                 `;
-                [...colors].sort(() => Math.random() - 0.5).forEach(opt => {
+
+                [...pool].sort(() => Math.random() - 0.5).forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = `${opt.bg} ${opt.border} text-white btn-beanbag text-xl font-black h-full flex items-center justify-center shadow-md`;
                     btn.innerText = opt.name;
@@ -575,12 +514,33 @@
                     controls.appendChild(btn);
                 });
             },
-            
+
             renderDirection: function(stage, controls) {
+                // Easy: Always Same. Normal: Same/Reverse. Pro: Same/Reverse + Color Rule
+                // Pro Rule: Red Arrow = Reverse, Blue Arrow = Same
                 const dirs = ['up', 'down', 'left', 'right'];
                 const icons = { up: 'fa-arrow-up', down: 'fa-arrow-down', left: 'fa-arrow-left', right: 'fa-arrow-right' };
                 const actualDir = dirs[Math.floor(Math.random() * dirs.length)];
-                const isReverse = Math.random() > 0.5;
+                
+                let isReverse = false;
+                let instructionText = "そのまま！";
+                let colorClass = "text-slate-700";
+
+                if (this.state.difficulty === 'easy') {
+                    isReverse = false;
+                    instructionText = "そのまま！";
+                    colorClass = "text-blue-500";
+                } else if (this.state.difficulty === 'normal') {
+                    isReverse = Math.random() > 0.5;
+                    instructionText = isReverse ? "反対！" : "そのまま！";
+                    colorClass = isReverse ? "text-red-500" : "text-blue-500";
+                } else {
+                    // Pro
+                    isReverse = Math.random() > 0.5; // Decided by color
+                    colorClass = isReverse ? "text-red-500" : "text-blue-500";
+                    instructionText = isReverse ? "赤は反対！" : "青はそのまま！";
+                }
+
                 let correctDir = actualDir;
                 if (isReverse) {
                     if (actualDir === 'up') correctDir = 'down';
@@ -588,12 +548,14 @@
                     if (actualDir === 'left') correctDir = 'right';
                     if (actualDir === 'right') correctDir = 'left';
                 }
+
                 stage.innerHTML = `
-                    <div class="inline-block ${isReverse ? 'bg-red-100 text-red-500' : 'bg-blue-100 text-blue-500'} px-4 py-1 rounded-full text-sm font-black mb-6">
-                        ${isReverse ? '反対！' : 'そのまま！'}
+                    <div class="inline-block bg-slate-100 px-4 py-1 rounded-full text-sm font-black mb-6 ${colorClass}">
+                        ${instructionText}
                     </div>
-                    <div class="text-[5rem] text-slate-700 drop-shadow-sm"><i class="fa-solid ${icons[actualDir]}"></i></div>
+                    <div class="text-[5rem] ${colorClass} drop-shadow-sm"><i class="fa-solid ${icons[actualDir]}"></i></div>
                 `;
+
                 dirs.forEach(d => {
                     const btn = document.createElement('button');
                     btn.className = `bg-white border-slate-200 text-slate-400 border-b-4 rounded-3xl text-3xl font-black h-full flex items-center justify-center shadow-sm active:translate-y-1 active:border-b-2 active:text-blue-500 transition-all`;
@@ -604,12 +566,34 @@
             },
 
             renderMath: function(stage, controls) {
-                const num = Math.floor(Math.random() * 99) + 1;
-                const isEven = num % 2 === 0;
+                // Easy: 1-9. Normal: 10-99. Pro: Calculation (e.g., 5+8)
+                let contentHTML = "";
+                let isEven = false;
+
+                if (this.state.difficulty === 'pro') {
+                    // Calculation
+                    const n1 = Math.floor(Math.random() * 9) + 1;
+                    const n2 = Math.floor(Math.random() * 9) + 1;
+                    const op = Math.random() > 0.5 ? '+' : '-';
+                    const val = op === '+' ? n1 + n2 : n1 + n2; // Keep simple add for now or strict? Let's do simple add/sub
+                    // To avoid negative, let's just do Addition for simplicity in UI
+                    const res = n1 + n2;
+                    isEven = res % 2 === 0;
+                    contentHTML = `${n1} + ${n2}`;
+                } else {
+                    const max = this.state.difficulty === 'easy' ? 9 : 99;
+                    const num = Math.floor(Math.random() * max) + 1;
+                    isEven = num % 2 === 0;
+                    contentHTML = num;
+                }
+
                 stage.innerHTML = `
-                    <div class="text-sm font-black text-slate-400 mb-4">どっち？</div>
-                    <div class="w-32 h-32 flex items-center justify-center bg-white border-4 border-dashed border-slate-200 rounded-full text-[4rem] font-black text-slate-700">${num}</div>
+                    <div class="text-sm font-black text-slate-400 mb-4">偶数？奇数？</div>
+                    <div class="w-40 h-40 flex items-center justify-center bg-white border-4 border-dashed border-slate-200 rounded-full text-[3.5rem] font-black text-slate-700">
+                        ${contentHTML}
+                    </div>
                 `;
+                
                 const mkBtn = (label, sub, col, check) => {
                     const btn = document.createElement('button');
                     const colorClass = col === 'blue' ? 'bg-blue-400 border-blue-600' : 'bg-red-400 border-red-600';
@@ -626,7 +610,11 @@
                 if (!this.state.isPlaying) return;
                 const stage = document.getElementById('game-stage');
                 if (isCorrect) {
-                    this.state.score += 10;
+                    // Score multiplier based on difficulty?
+                    let points = 10;
+                    if(this.state.difficulty === 'pro') points = 20;
+                    this.state.score += points;
+                    
                     stage.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 200 });
                 } else {
                     stage.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }], { duration: 300 });
@@ -638,11 +626,10 @@
             endGame: function() {
                 this.state.isPlaying = false;
                 clearInterval(this.state.timerInterval);
-                
-                // 記録保存
                 UserData.recordPlay(this.state.score);
 
                 document.getElementById('final-score').innerText = this.state.score;
+                document.getElementById('result-difficulty').innerText = `MODE: ${this.state.difficulty.toUpperCase()}`;
                 
                 let feedback = "ドンマイ！";
                 if (this.state.score > 200) feedback = "すごい！天才かも！？";
@@ -651,97 +638,49 @@
                 document.getElementById('feedback-text').innerText = feedback;
 
                 this.switchView('result');
-
-                // 結果画面でのスタンプアニメーション
                 const stampArea = document.getElementById('result-stamp-area');
                 stampArea.classList.remove('animate-stamp');
-                void stampArea.offsetWidth; // Reflow
-                setTimeout(() => {
-                    stampArea.classList.add('animate-stamp');
-                }, 500);
+                void stampArea.offsetWidth; 
+                setTimeout(() => stampArea.classList.add('animate-stamp'), 500);
             },
-
-            // --- Calendar Logic ---
+            
             renderCalendar: function() {
                 const today = new Date();
                 const year = today.getFullYear();
-                const month = today.getMonth(); // 0-indexed
-                
+                const month = today.getMonth();
                 document.getElementById('calendar-month-label').innerText = `${year}年 ${month + 1}月`;
-                
                 const firstDay = new Date(year, month, 1).getDay();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
-                
                 const grid = document.getElementById('calendar-days');
                 grid.innerHTML = '';
-                
-                // ユーザーデータ取得
                 const userData = UserData.load();
-                // 日付文字列のリスト ("Fri Oct 05 2023"形式)
-                const playedDates = userData.dates;
-
-                // 空白セル
-                for (let i = 0; i < firstDay; i++) {
-                    const empty = document.createElement('div');
-                    grid.appendChild(empty);
-                }
                 
-                // 日付セル
+                for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement('div'));
                 for (let d = 1; d <= daysInMonth; d++) {
-                    const dateObj = new Date(year, month, d);
-                    const dateStr = dateObj.toDateString();
-                    
+                    const dateStr = new Date(year, month, d).toDateString();
                     const cell = document.createElement('div');
                     cell.className = 'calendar-day';
                     cell.innerText = d;
-                    
-                    if (playedDates.includes(dateStr)) {
+                    if (userData.dates.includes(dateStr)) {
                         cell.classList.add('stamped');
-                        // スタンプマーク追加
                         const mark = document.createElement('i');
                         mark.className = 'fa-solid fa-certificate stamp-mark';
                         cell.appendChild(mark);
-                        
-                        // 文字色を調整
                         cell.style.color = '#854d0e';
                     }
-                    
                     grid.appendChild(cell);
                 }
-
-                // 継続日数（スタンプ総数）表示
-                document.getElementById('streak-count').innerHTML = `${playedDates.length} <span class="text-sm">回</span>`;
+                document.getElementById('streak-count').innerHTML = `${userData.dates.length} <span class="text-sm">回</span>`;
             }
         };
 
-        // --- Entry Point ---
         window.onload = function() {
-            const liffId = "2008634402-WmX8vnr1"; 
-
-            // Mock for testing without LIFF (Remove in production if needed)
-            // UserData.setUserId('debug_user_01'); 
-
+            const liffId = "LIFF_ID_PLACEHOLDER"; 
             if (typeof liff !== 'undefined') {
-                liff.init({ liffId: liffId })
-                    .then(() => {
-                        if (!liff.isLoggedIn() && liff.isInClient()) {
-                            liff.login();
-                        } else {
-                            // LIFFからProfile取得
-                            liff.getProfile().then(profile => {
-                                UserData.setUserId(profile.userId);
-                                app.init();
-                            }).catch(err => {
-                                console.warn("Profile get failed:", err);
-                                app.init(); // Guest mode
-                            });
-                        }
-                    })
-                    .catch((err) => {
-                        console.warn("LIFF Init failed:", err);
-                        // Fallback for browser preview
-                        app.init();
-                    });
+                liff.init({ liffId: liffId }).then(() => {
+                    if (!liff.isLoggedIn() && liff.isInClient()) liff.login();
+                    else liff.getProfile().then(p => { UserData.setUserId(p.userId); app.init(); }).catch(() => app.init());
+                }).catch(() => app.init());
             } else {
                 app.init();
             }
