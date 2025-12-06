@@ -14,7 +14,7 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
+      gtag('config', 'G-ZT8CBC1JLV');
     </script>
 
     <!-- Tailwind CSS -->
@@ -74,6 +74,12 @@
             100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
         .animate-stamp { animation: stamp-seal 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
 
         /* UIコンポーネント */
         .btn-beanbag {
@@ -229,7 +235,7 @@
                         <i class="fa-solid fa-crown"></i>
                     </div>
                     <span class="text-sm font-black text-slate-700">プロ級</span>
-                    <span class="text-[10px] font-bold text-slate-400">極める</span>
+                    <span class="text-[10px] font-bold text-slate-400">激ムズ</span>
                 </button>
             </div>
 
@@ -480,7 +486,8 @@
 
             // --- Game Logic with Difficulty ---
             renderStroop: function(stage, controls) {
-                // Easy: 2色, シンプル. Normal: 4色. Pro: 4色 + 混乱要素(フォントサイズ変化等)
+                // Easy: 2色, シンプル. Normal: 4色. 
+                // Pro: 4色 + 文字回転/反転 + ボタン位置シャッフル
                 const allColors = [
                     { name: 'あか', code: 'text-red-500', bg: 'bg-red-400', border: 'border-red-600', val: 'red' },
                     { name: 'あお', code: 'text-blue-500', bg: 'bg-blue-400', border: 'border-blue-600', val: 'blue' },
@@ -489,24 +496,43 @@
                 ];
                 
                 let pool = allColors;
-                if (this.state.difficulty === 'easy') pool = allColors.slice(0, 2); // Only Red/Blue
+                if (this.state.difficulty === 'easy') pool = allColors.slice(0, 2); 
 
                 const mode = Math.random() > 0.5 ? 'color' : 'text';
                 const targetText = pool[Math.floor(Math.random() * pool.length)];
                 const targetColor = pool[Math.floor(Math.random() * pool.length)];
                 const correctAnswer = mode === 'color' ? targetColor.val : targetText.val;
 
-                // Pro: Random font size
-                const fontSize = this.state.difficulty === 'pro' ? (Math.random() > 0.5 ? 'text-[3rem]' : 'text-[5rem]') : 'text-[4rem]';
+                // Pro: Rotation / Distortion
+                let transformStyle = '';
+                if (this.state.difficulty === 'pro') {
+                    const rot = Math.floor(Math.random() * 90) - 45; // -45 to 45
+                    const scale = Math.random() > 0.5 ? 'scaleX(-1)' : 'scale(1)'; // Mirror sometimes
+                    transformStyle = `transform: rotate(${rot}deg) ${scale};`;
+                }
+
+                const fontSize = this.state.difficulty === 'pro' ? 'text-[5rem]' : 'text-[4rem]';
 
                 stage.innerHTML = `
                     <div class="inline-block bg-slate-100 px-4 py-1 rounded-full text-sm font-black text-slate-500 mb-4">
                         ${mode === 'color' ? '「色」は？' : '「読み」は？'}
                     </div>
-                    <div class="${fontSize} font-black ${targetColor.code} leading-none drop-shadow-sm transition-all">${targetText.name}</div>
+                    <div class="${fontSize} font-black ${targetColor.code} leading-none drop-shadow-sm transition-all" style="${transformStyle}">${targetText.name}</div>
                 `;
 
-                [...pool].sort(() => Math.random() - 0.5).forEach(opt => {
+                // Pro: Shuffle Buttons
+                let buttonOrder = [...pool];
+                if (this.state.difficulty !== 'easy') { // Normal, Pro shuffle
+                    buttonOrder.sort(() => Math.random() - 0.5);
+                } else {
+                     // Easy keep order for ease? No, standard is shuffle usually, let's keep standard shuffle
+                     buttonOrder.sort(() => Math.random() - 0.5);
+                }
+                
+                // For Pro, maybe shuffle even more aggressively or add dud buttons? 
+                // Let's stick to shuffling. The Rotation is the main killer.
+
+                buttonOrder.forEach(opt => {
                     const btn = document.createElement('button');
                     btn.className = `${opt.bg} ${opt.border} text-white btn-beanbag text-xl font-black h-full flex items-center justify-center shadow-md`;
                     btn.innerText = opt.name;
@@ -516,8 +542,6 @@
             },
 
             renderDirection: function(stage, controls) {
-                // Easy: Always Same. Normal: Same/Reverse. Pro: Same/Reverse + Color Rule
-                // Pro Rule: Red Arrow = Reverse, Blue Arrow = Same
                 const dirs = ['up', 'down', 'left', 'right'];
                 const icons = { up: 'fa-arrow-up', down: 'fa-arrow-down', left: 'fa-arrow-left', right: 'fa-arrow-right' };
                 const actualDir = dirs[Math.floor(Math.random() * dirs.length)];
@@ -525,71 +549,111 @@
                 let isReverse = false;
                 let instructionText = "そのまま！";
                 let colorClass = "text-slate-700";
+                
+                let targetDir = actualDir;
 
                 if (this.state.difficulty === 'easy') {
                     isReverse = false;
                     instructionText = "そのまま！";
                     colorClass = "text-blue-500";
+                    targetDir = actualDir;
                 } else if (this.state.difficulty === 'normal') {
                     isReverse = Math.random() > 0.5;
                     instructionText = isReverse ? "反対！" : "そのまま！";
                     colorClass = isReverse ? "text-red-500" : "text-blue-500";
+                    
+                    if(isReverse) {
+                        if (actualDir === 'up') targetDir = 'down';
+                        if (actualDir === 'down') targetDir = 'up';
+                        if (actualDir === 'left') targetDir = 'right';
+                        if (actualDir === 'right') targetDir = 'left';
+                    }
                 } else {
-                    // Pro
-                    isReverse = Math.random() > 0.5; // Decided by color
-                    colorClass = isReverse ? "text-red-500" : "text-blue-500";
-                    instructionText = isReverse ? "赤は反対！" : "青はそのまま！";
+                    // Pro: 4 Color Rules + Animation
+                    // Blue=Same, Red=Reverse, Yellow=Right90, Green=Left90
+                    const rules = [
+                        { col: 'text-blue-500', type: 'same' }, 
+                        { col: 'text-red-500', type: 'rev' },
+                        { col: 'text-yellow-500', type: 'right90' },
+                        { col: 'text-green-500', type: 'left90' }
+                    ];
+                    const rule = rules[Math.floor(Math.random() * rules.length)];
+                    colorClass = rule.col;
+                    
+                    // Show rule hint text?
+                    const ruleText = { same: 'そのまま', rev: '反対', right90: '右に90度', left90: '左に90度' };
+                    instructionText = ruleText[rule.type];
+
+                    if(rule.type === 'same') targetDir = actualDir;
+                    else if(rule.type === 'rev') {
+                        if (actualDir === 'up') targetDir = 'down';
+                        if (actualDir === 'down') targetDir = 'up';
+                        if (actualDir === 'left') targetDir = 'right';
+                        if (actualDir === 'right') targetDir = 'left';
+                    } else if(rule.type === 'right90') {
+                        // Up->Right, Right->Down, Down->Left, Left->Up
+                        if (actualDir === 'up') targetDir = 'right';
+                        if (actualDir === 'right') targetDir = 'down';
+                        if (actualDir === 'down') targetDir = 'left';
+                        if (actualDir === 'left') targetDir = 'up';
+                    } else if(rule.type === 'left90') {
+                        // Up->Left, Left->Down, Down->Right, Right->Up
+                        if (actualDir === 'up') targetDir = 'left';
+                        if (actualDir === 'left') targetDir = 'down';
+                        if (actualDir === 'down') targetDir = 'right';
+                        if (actualDir === 'right') targetDir = 'up';
+                    }
                 }
 
-                let correctDir = actualDir;
-                if (isReverse) {
-                    if (actualDir === 'up') correctDir = 'down';
-                    if (actualDir === 'down') correctDir = 'up';
-                    if (actualDir === 'left') correctDir = 'right';
-                    if (actualDir === 'right') correctDir = 'left';
-                }
+                // Pro Animation
+                const animClass = this.state.difficulty === 'pro' ? 'animate-spin-slow' : '';
 
                 stage.innerHTML = `
                     <div class="inline-block bg-slate-100 px-4 py-1 rounded-full text-sm font-black mb-6 ${colorClass}">
                         ${instructionText}
                     </div>
-                    <div class="text-[5rem] ${colorClass} drop-shadow-sm"><i class="fa-solid ${icons[actualDir]}"></i></div>
+                    <div class="text-[5rem] ${colorClass} drop-shadow-sm ${animClass}"><i class="fa-solid ${icons[actualDir]}"></i></div>
                 `;
 
                 dirs.forEach(d => {
                     const btn = document.createElement('button');
                     btn.className = `bg-white border-slate-200 text-slate-400 border-b-4 rounded-3xl text-3xl font-black h-full flex items-center justify-center shadow-sm active:translate-y-1 active:border-b-2 active:text-blue-500 transition-all`;
                     btn.innerHTML = `<i class="fa-solid ${icons[d]}"></i>`;
-                    btn.onclick = () => this.handleAnswer(d === correctDir);
+                    btn.onclick = () => this.handleAnswer(d === targetDir);
                     controls.appendChild(btn);
                 });
             },
 
             renderMath: function(stage, controls) {
-                // Easy: 1-9. Normal: 10-99. Pro: Calculation (e.g., 5+8)
+                // Easy: 1-9. Normal: 10-99. Pro: 3-step calculation
                 let contentHTML = "";
                 let isEven = false;
 
                 if (this.state.difficulty === 'pro') {
-                    // Calculation
-                    const n1 = Math.floor(Math.random() * 9) + 1;
-                    const n2 = Math.floor(Math.random() * 9) + 1;
-                    const op = Math.random() > 0.5 ? '+' : '-';
-                    const val = op === '+' ? n1 + n2 : n1 + n2; // Keep simple add for now or strict? Let's do simple add/sub
-                    // To avoid negative, let's just do Addition for simplicity in UI
-                    const res = n1 + n2;
+                    // Calculation: A + B - C or A + B + C
+                    const n1 = Math.floor(Math.random() * 20) + 1;
+                    const n2 = Math.floor(Math.random() * 20) + 1;
+                    const n3 = Math.floor(Math.random() * 10) + 1;
+                    const op1 = Math.random() > 0.5 ? '+' : '-';
+                    const op2 = Math.random() > 0.5 ? '+' : '-';
+                    
+                    let res = n1;
+                    if(op1 === '+') res += n2; else res -= n2;
+                    if(op2 === '+') res += n3; else res -= n3;
+                    
+                    // Display string e.g. "12 + 5 - 3"
+                    contentHTML = `<div class="text-3xl">${n1} ${op1} ${n2} ${op2} ${n3}</div>`;
                     isEven = res % 2 === 0;
-                    contentHTML = `${n1} + ${n2}`;
                 } else {
                     const max = this.state.difficulty === 'easy' ? 9 : 99;
                     const num = Math.floor(Math.random() * max) + 1;
                     isEven = num % 2 === 0;
-                    contentHTML = num;
+                    contentHTML = `<div class="text-[3.5rem]">${num}</div>`;
                 }
 
                 stage.innerHTML = `
                     <div class="text-sm font-black text-slate-400 mb-4">偶数？奇数？</div>
-                    <div class="w-40 h-40 flex items-center justify-center bg-white border-4 border-dashed border-slate-200 rounded-full text-[3.5rem] font-black text-slate-700">
+                    <div class="w-40 h-40 flex items-center justify-center bg-white border-4 border-dashed border-slate-200 rounded-full font-black text-slate-700">
                         ${contentHTML}
                     </div>
                 `;
@@ -610,9 +674,9 @@
                 if (!this.state.isPlaying) return;
                 const stage = document.getElementById('game-stage');
                 if (isCorrect) {
-                    // Score multiplier based on difficulty?
                     let points = 10;
-                    if(this.state.difficulty === 'pro') points = 20;
+                    if(this.state.difficulty === 'normal') points = 15;
+                    if(this.state.difficulty === 'pro') points = 30; // High score for Pro
                     this.state.score += points;
                     
                     stage.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 200 });
@@ -632,9 +696,11 @@
                 document.getElementById('result-difficulty').innerText = `MODE: ${this.state.difficulty.toUpperCase()}`;
                 
                 let feedback = "ドンマイ！";
-                if (this.state.score > 200) feedback = "すごい！天才かも！？";
-                else if (this.state.score > 100) feedback = "いい感じ！脳が起きたね！";
-                else if (this.state.score > 50) feedback = "ナイスファイト！";
+                const base = this.state.difficulty === 'pro' ? 400 : (this.state.difficulty === 'normal' ? 200 : 100);
+                
+                if (this.state.score > base) feedback = "すごい！天才かも！？";
+                else if (this.state.score > base/2) feedback = "いい感じ！脳が起きたね！";
+                else feedback = "ナイスファイト！";
                 document.getElementById('feedback-text').innerText = feedback;
 
                 this.switchView('result');
