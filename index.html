@@ -6,7 +6,7 @@
     <title>UNLOCK</title>
     
     <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZT8CBC1JLV"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -299,7 +299,7 @@
     <!-- SCRIPT -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        const AppConfig = { gameDuration: 30, storageBaseKey: 'unlock_data_v7_' };
+        const AppConfig = { gameDuration: 30, storageBaseKey: 'unlock_data_v8_' };
         const Dict = {
             ja: {
                 header_record: "記録",
@@ -366,7 +366,10 @@
             state: { lang: 'ja', currentView: 'language', score: 0, timeLeft: AppConfig.gameDuration, isPlaying: false, todayGameIndex: 0, timerInterval: null, difficulty: 'normal', memoryAnswer: null, inputBlocked: false },
 
             init: function() {
-                this.state.todayGameIndex = 0; // DEMO: Always Memory Flash
+                // Determine Daily Game from Date
+                const today = new Date();
+                const dateHash = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+                this.state.todayGameIndex = dateHash % GameData.length;
                 this.switchView('language');
             },
 
